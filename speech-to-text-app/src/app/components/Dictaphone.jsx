@@ -3,23 +3,9 @@ import React, { useState, useEffect, useRef } from "react";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
-import {
-  Videocam,
-  VideocamOff,
-  VolumeOff,
-  VolumeUp,
-  Mic,
-  MicOff,
-  ContentCopy,
-  RecordVoiceOver,
-} from "@mui/icons-material";
+import { Mic, MicOff, RecordVoiceOver } from "@mui/icons-material";
 
-const Dictaphone = ({
-  prompt,
-  setPrompt,
-  // setIsStillListening,
-  handleSubmit,
-}) => {
+const Dictaphone = ({ handleSubmit, promptRef, adjustTextareaHeight }) => {
   const {
     transcript,
     listening,
@@ -27,34 +13,25 @@ const Dictaphone = ({
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition();
 
-  const textAreaRef = useRef(null);
-  const [val, setVal] = useState("");
-  const handleChange = (e) => {
-    setVal(e.target.value);
-  };
-  // console.log(browserSupportsSpeechRecognition);
   if (!browserSupportsSpeechRecognition) {
     return <span>Browser doesn't support speech recognition.</span>;
   }
 
-  useEffect(() => {
-    textAreaRef.current.style.height = "auto";
-    textAreaRef.current.style.height = textAreaRef.current.scrollHeight + "px";
-  }, [prompt]);
+  const handleChange = () => {
+    adjustTextareaHeight();
+  };
+
   useEffect(() => {
     if (listening) {
-      setPrompt((oldPrompt) => (oldPrompt = transcript));
+      // setPrompt((oldPrompt) => (oldPrompt = transcript));
+      promptRef.current.value = transcript;
+      adjustTextareaHeight();
     }
     // setIsStillListening(listening);
   }, [transcript, listening]);
 
   return (
     <div>
-      {/* <p>Microphone: {listening ? "on" : "off"}</p>
-      <button onClick={SpeechRecognition.startListening}>Start</button>
-      <button onClick={SpeechRecognition.stopListening}>Stop</button>
-      <button onClick={resetTranscript}>Reset</button> */}
-      {/* <button onClick={handleSubmit}>Submit</button> */}
       <label htmlFor="chat" className="sr-only">
         Your message
       </label>
@@ -71,7 +48,7 @@ const Dictaphone = ({
           <>
             <button
               type="button"
-              className="inline-flex justify-center p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+              className="inline-flex justify-center p-2 text-gray-500 cursor-none rounded-lg hover:text-gray-900 bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
               // onClick={SpeechRecognition.startListening}
             >
               <RecordVoiceOver />
@@ -89,10 +66,7 @@ const Dictaphone = ({
         <textarea
           id="chat"
           rows="1"
-          value={prompt}
-          onChange={(e) => {
-            setPrompt(e.target.value);
-          }}
+          onChange={handleChange}
           onKeyUp={(e) => {
             if (e.key === "Enter") {
               handleSubmit();
@@ -100,7 +74,7 @@ const Dictaphone = ({
           }}
           className="block mx-4 p-2.5 w-full text-sm text-gray-900 bg-white overflow-hidden rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
           placeholder="Your message..."
-          ref={textAreaRef}
+          ref={promptRef}
         ></textarea>
         <button
           type="submit"
@@ -117,14 +91,6 @@ const Dictaphone = ({
           </svg>
         </button>
       </div>
-      {/* <input
-        type="text"
-        value={prompt}
-        onChange={(e) => {
-          setPrompt(e.target.value);
-        }}
-      />
-      <p>{prompt}</p> */}
     </div>
   );
 };

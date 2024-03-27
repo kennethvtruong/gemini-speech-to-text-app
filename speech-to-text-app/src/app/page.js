@@ -1,26 +1,18 @@
 "use client";
-import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "regenerator-runtime/runtime";
-// import SpeechRecognition, {
-//   useSpeechRecognition,
-// } from "react-speech-recognition";
 import dynamic from "next/dynamic";
-import io from "socket.io-client";
 import TypedResponse from "./components/TypedResponses";
 const Dictaphone = dynamic(() => import("./components/Dictaphone"), {
   ssr: false,
 });
+
 export default function Home() {
-  const [prompt, setPrompt] = useState("");
   const [generatedContent, setGeneratedContent] = useState("");
-  const [socket, setSocket] = useState(null);
-  const handleSubmit = async () => {
-    setGeneratedContent("");
-    const currPrompt = prompt;
-    setPrompt("");
-    const data = await fetch("http://localhost:5000/generateChat", {
-      // const data = await fetch("http://localhost:5000/generateContent", {
+  const promptRef = useRef(null);
+
+  const handleGenerateResponse = (currPrompt) => {
+    fetch("http://localhost:5000/generateChat", {
       method: "POST",
       body: JSON.stringify({
         prompt: currPrompt,
@@ -28,47 +20,33 @@ export default function Home() {
       headers: {
         "Content-Type": "application/json",
       },
-    }).then((res) => res.json());
-    // setPrompt("");
-    // console.log("data", data);
-    setGeneratedContent((oldContent) => (oldContent = data.content));
+    })
+      .then((res) => res.text())
+      .then((data) => {
+        // Handle the received data
+        console.log(data);
+        setGeneratedContent((content) => (content += data));
+      })
+      .catch((error) => {
+        // Handle fetch errors here
+        console.error("Fetch error:", error);
+      });
   };
 
-  // useEffect(() => {
-  //   const socket = io("http://localhost:5000/");
-
-  //   socket.on("response-update", (data) => {
-  //     // Apply the received update to the editor
-  //     console.log("data", data);
-  //     setGeneratedContent((content) => (content += data));
-  //   });
-  //   setSocket(socket);
-
-  //   return () => {
-  //     socket.disconnect();
-  //     // setGeneratedContent("");
-  //   };
-  // }, [generatedContent]);
-
-  const renderers = {
-    typedResponse: ({ children }) => <TypedResponse text={children[0]} />,
+  const adjustTextareaHeight = () => {
+    if (promptRef.current) {
+      promptRef.current.style.height = "auto";
+      promptRef.current.style.height = promptRef.current.scrollHeight + "px";
+    }
   };
-  // useEffect(() => {
-  //   if (prompt) {
-  //     setGeneratedContent("");
-  //   }
-  // }, [prompt]);
-  // useEffect(() => {
-  //   if (!isStillListening) {
-  //     handleSubmit();
-  //     setIsStillListening((pastListen) => !pastListen);
-  //     console.log(generatedContent);
-  //   }
-  // }, [isStillListening]);
 
-  // useEffect(() => {
-  //   handleSubmit();
-  // }, []);
+  const handleSubmit = () => {
+    setGeneratedContent("");
+    handleGenerateResponse(promptRef.current.value);
+    promptRef.current.value = null;
+    adjustTextareaHeight();
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="overflow-auto">
@@ -79,14 +57,11 @@ export default function Home() {
         )}
       </div>
       <div className="w-4/5">
-        {/* <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex"> */}
         <Dictaphone
-          prompt={prompt}
-          setPrompt={setPrompt}
-          // setIsStillListening={setIsStillListening}
           handleSubmit={handleSubmit}
+          promptRef={promptRef}
+          adjustTextareaHeight={adjustTextareaHeight}
         />
-        {/* prompt: {prompt} */}
       </div>
     </main>
   );
