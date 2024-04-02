@@ -12,6 +12,14 @@ module.exports = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+      scrollbar: {
+        scrollbar: {
+          width: "10px",
+          // track: "bg-gray-200",
+          thumb: "bg-gray-400",
+          // You can also define other states like hover, focus, etc.
+        },
+      },
     },
   },
   plugins: [],

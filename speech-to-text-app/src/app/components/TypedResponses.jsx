@@ -7,7 +7,13 @@ import { codeblocks } from "remark-code-blocks";
 import { LocalConvenienceStoreOutlined } from "@mui/icons-material";
 import CodeBlock from "./CodeBlock";
 
-const TypedResponse = ({ markdownText }) => {
+const TypedResponse = ({
+  markdownText,
+  getHistory,
+  setGeneratedResponse,
+  setPastResponses,
+  pastResponses,
+}) => {
   const [displayText, setDisplayText] = useState("");
   const effectRun = useRef(false);
   useEffect(() => {
@@ -25,9 +31,18 @@ const TypedResponse = ({ markdownText }) => {
           currIdx++;
         } else {
           clearInterval(interval);
+          //   setPastResponses((history) => [
+          //     ...history,
+          //     { role: "model", parts: [{ text: markdownText }] },
+          //   ]);
         }
       }, 25); // Adjust speed as needed
-      return () => clearInterval(interval);
+      return () => {
+        clearInterval(interval);
+
+        // getHistory();
+        // setGeneratedResponse("");
+      };
     }
     effectRun.current = true;
   }, [markdownText]);
